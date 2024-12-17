@@ -5,9 +5,6 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-
-
-
 const app = express();
 
 app.get('/',(req,res)=>{
@@ -18,6 +15,6 @@ app.use('/api/auth',authRoutes);
 
 const port = process.env.PORT || 8000
 app.listen(port,()=>{
-    console.log("listening...");
+    console.log("listening......");
     connectDb();
 });
