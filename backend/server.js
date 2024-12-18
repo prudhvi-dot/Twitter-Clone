@@ -2,10 +2,15 @@ import express from "express";
 import authRoutes from "./routes/authroutes.js";
 import connectDb from "./config/db.js";
 import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
 
 dotenv.config();
 
 const app = express();
+const port = process.env.PORT || 8000
+app.use(express.json());
+app.use(express.urlencoded({extended:true}))
+app.use(cookieParser());
 
 app.get('/',(req,res)=>{
     res.send("Home");
@@ -13,7 +18,7 @@ app.get('/',(req,res)=>{
 
 app.use('/api/auth',authRoutes);
 
-const port = process.env.PORT || 8000
+
 app.listen(port,()=>{
     console.log("listening......");
     connectDb();
