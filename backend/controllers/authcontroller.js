@@ -78,7 +78,8 @@ export const login = async(req, res)=>{
             followers: user.followers,
             following: user.following,
             profileImg: user.profileImg,
-            coverImg: user.coverImg})
+            coverImg: user.coverImg
+        })
 
     } catch(err) {
        return res.status(500).json({error: err.message});
