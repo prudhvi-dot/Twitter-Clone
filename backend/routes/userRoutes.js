@@ -4,7 +4,7 @@ import { protectRoute } from "../middleware/protected.js";
 
 const router = express.Router();
 
-router.get('/profile/:userName',getUserProfile);
+router.get('/profile/:userName',protectRoute,getUserProfile);
 
 router.get('/suggested',protectRoute,getSuggestedUsers);
 
