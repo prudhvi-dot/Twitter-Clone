@@ -5,19 +5,46 @@ import { FaRegBookmark } from "react-icons/fa6";
 import { FaTrash } from "react-icons/fa";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import LoadingSpinner from "./LoadingSpinner";
 
-const Post = ({ post }) => {
+const Post = ({ post, feedType }) => {
 	const [comment, setComment] = useState("");
 	const postOwner = post.user;
 	const isLiked = false;
 
-	const isMyPost = true;
+	const queryClient = useQueryClient();
 
+	
 	const formattedDate = "1h";
-
+	
 	const isCommenting = false;
+	
+	const {data} = useQuery({
+		queryKey:['authUser']
+	})
+	const {mutate:deletePost, isPending} = useMutation({
+		mutationFn: async(id)=>{
+			const res = await fetch(`/api/posts/${id}`,{
+				method:'DELETE'
+			});
+			const data = await res.json();
+			if(!res.ok){
+				throw new Error(data.error)
+			}
+		},
+		onError:(error)=>{
+			console.log(error.message)
+		},
+		onSuccess:()=>{
+			queryClient.invalidateQueries(['posts',feedType])
+		}
+	})
+	const isMyPost = postOwner._id===data._id;
 
-	const handleDeletePost = () => {};
+	const handleDeletePost = (id) => {
+		deletePost(id)
+	};
 
 	const handlePostComment = (e) => {
 		e.preventDefault();
@@ -45,7 +72,8 @@ const Post = ({ post }) => {
 						</span>
 						{isMyPost && (
 							<span className='flex justify-end flex-1'>
-								<FaTrash className='cursor-pointer hover:text-red-500' onClick={handleDeletePost} />
+								{isPending?<LoadingSpinner/>:<FaTrash className='cursor-pointer hover:text-red-500' onClick={()=>handleDeletePost(post._id)} />}
+								
 							</span>
 						)}
 					</div>
