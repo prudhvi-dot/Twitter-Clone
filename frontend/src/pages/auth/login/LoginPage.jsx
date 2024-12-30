@@ -1,20 +1,57 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
+import {toast} from 'react-hot-toast';
+
 
 import XSvg from "../../../components/svgs/X";
 
 import { MdOutlineMail } from "react-icons/md";
 import { MdPassword } from "react-icons/md";
+import { useMutation, useQueryClient} from "@tanstack/react-query";
+import { parse } from "dotenv";
+// import toast from "react-hot-toast";
 
 const LoginPage = () => {
 	const [formData, setFormData] = useState({
-		username: "",
+		userName: "",
 		password: "",
 	});
 
+	const queryClient = useQueryClient();
+
+
+	const logInFunction = async({userName,password})=>{
+
+			const res = await fetch('/api/auth/login',{
+			method: 'POST',
+			headers:{
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({userName,password})
+		    });
+			const parsedResponse = await res.json();
+		    if(!res.ok){
+			throw new Error(parsedResponse.error);
+		    }
+		    return parsedResponse;
+		
+	}
+
+	const {mutate} = useMutation({
+		mutationFn: (formData)=>logInFunction(formData),
+		onSuccess: (data)=>{
+			queryClient.invalidateQueries(['authUser']);
+		},
+		onError: (error)=>{
+			toast.error(error.message);
+		}
+	})
+
+
+
 	const handleSubmit = (e) => {
 		e.preventDefault();
-		console.log(formData);
+		mutate(formData);
 	};
 
 	const handleInputChange = (e) => {
@@ -38,9 +75,9 @@ const LoginPage = () => {
 							type='text'
 							className='grow'
 							placeholder='username'
-							name='username'
+							name='userName'
 							onChange={handleInputChange}
-							value={formData.username}
+							value={formData.userName}
 						/>
 					</label>
 
