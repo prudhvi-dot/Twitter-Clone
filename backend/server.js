@@ -29,7 +29,7 @@ app.get('/',(req,res)=>{
 
 app.use('/api/auth',authRoutes);
 app.use('/api/users',userRoutes);
-app.use('/api/post', postRoutes)
+app.use('/api/posts', postRoutes)
 
 
 app.listen(port,()=>{

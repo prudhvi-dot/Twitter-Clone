@@ -1,9 +1,40 @@
 import Post from "./Post";
 import PostSkeleton from "../skeletons/PostSkeleton";
-import { POSTS } from "../../utils/db/dummy";
+// import { POSTS } from "../../utils/db/dummy";
+import { useQuery } from "@tanstack/react-query";
 
-const Posts = () => {
-	const isLoading = false;
+const Posts = ({feedType}) => {
+
+	const getPostsEndPoint = ()=>{
+		switch(feedType){
+			case "forYou":
+				return "/api/posts/all"
+			case "following":
+				return "/api/posts/following"
+			default:
+				return "/api/posts/all"
+		}
+	}
+
+	const POST_ENDPOINT = getPostsEndPoint();
+
+	const{data:POSTS, isLoading} = useQuery({
+		queryKey: ["posts", feedType],
+		queryFn: async()=>{
+			try {
+				const res = await fetch(POST_ENDPOINT);
+				const data = await res.json();
+
+				if(!res.ok){
+					throw new Error(data.error || "Something went wrong");
+				}
+
+				return data;
+			} catch (error) {
+				
+			}
+		}
+	})
 
 	return (
 		<>
