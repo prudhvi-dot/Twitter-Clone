@@ -7,6 +7,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import LoadingSpinner from "./LoadingSpinner";
+import timeAgo from "../../utils/date/date";
 
 const Post = ({ post, feedType }) => {
 	const [comment, setComment] = useState("");
@@ -17,7 +18,7 @@ const Post = ({ post, feedType }) => {
 
 
 	
-	const formattedDate = "1h";
+	const formattedDate = timeAgo(post.createdAt);
 	
 	// const isCommenting = false;
 	

@@ -50,7 +50,6 @@ const CreatePost = ({feedType}) => {
 	const handleSubmit = (e) => {
 		e.preventDefault();
 		createPost({text,img})
-		// alert("Post created successfully");
 	};
 
 	const handleImgChange = (e) => {
