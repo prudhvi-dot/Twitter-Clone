@@ -1,11 +1,12 @@
 import { useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
 import Posts from "../../components/common/Posts";
 import ProfileHeaderSkeleton from "../../components/skeletons/ProfileHeaderSkeleton";
 import EditProfileModal from "./EditProfileModal";
 
 import { POSTS } from "../../utils/db/dummy";
+import useFollow from "../../Hooks/useFollow";
 
 import { FaArrowLeft } from "react-icons/fa6";
 import { IoCalendarOutline } from "react-icons/io5";
@@ -17,14 +18,37 @@ const ProfilePage = () => {
 	const [coverImg, setCoverImg] = useState(null);
 	const [profileImg, setProfileImg] = useState(null);
 	const [feedType, setFeedType] = useState("posts");
+	const{follow} = useFollow();
+
+	const {userName} = useParams();
 
 	const coverImgRef = useRef(null);
 	const profileImgRef = useRef(null);
 
-	const isLoading = false;
-	const isMyProfile = true;
+	const{data:authUser} = useQuery({queryKey: ['authUser']})
+	const{data:user} = useQuery({
+		queryKey:['user',userName],
+		queryFn: async()=>{
+			try {
+				const res = await fetch(`/api/users/profile/${userName}`);
+				const data = await res.json();
 
-	const{data:user} = useQuery({queryKey: ['authUser']})
+				if(!res.ok){
+					throw new Error(data.error);
+				}
+				return data;
+
+			} catch (error) {
+				console.log(error.message)
+			}
+		}
+	})
+	const isLoading = false;
+	const isMyProfile = authUser._id===user._id;
+
+
+	// const{data:user} = useQuery({queryKey: ['authUser']})
+	
 
 	const handleImgChange = (e, state) => {
 		const file = e.target.files[0];
@@ -40,6 +64,7 @@ const ProfilePage = () => {
 
 	return (
 		<>
+
 			<div className='flex-[4_4_0]  border-r border-gray-700 min-h-screen '>
 				{/* HEADER */}
 				{isLoading && <ProfileHeaderSkeleton />}
@@ -106,9 +131,9 @@ const ProfilePage = () => {
 								{!isMyProfile && (
 									<button
 										className='btn btn-outline rounded-full btn-sm'
-										onClick={() => alert("Followed successfully")}
+										onClick={() => follow(user._id)}
 									>
-										Follow
+										{authUser.following.includes(user._id)?"UnFollow":"Follow"}
 									</button>
 								)}
 								{(coverImg || profileImg) && (

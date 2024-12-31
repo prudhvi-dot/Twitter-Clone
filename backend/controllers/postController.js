@@ -109,12 +109,12 @@ export const likePost = async (req, res)=>{
         }
 
         if(post.likes.includes(userId)){
-            await Post.findByIdAndUpdate(postId,{$pull:{likes:userId}})
+          const updatedPost = await Post.findByIdAndUpdate(postId,{$pull:{likes:userId}},{new:true})
             await User.findByIdAndUpdate(userId,{$pull:{likedPosts: postId}})
-            res.status(200).json({message: "sucesfully Unliked/"});
+            res.status(200).json(updatedPost.likes);
         }
         else{
-            await Post.findByIdAndUpdate(postId,{$push:{likes:userId}})
+          const updatedPost = await Post.findByIdAndUpdate(postId,{$push:{likes:userId}},{new:true})
             await User.findByIdAndUpdate(userId,{$push:{likedPosts:postId}})
             const newNotification = await Notification.create({
                 from: userId,
@@ -122,7 +122,7 @@ export const likePost = async (req, res)=>{
                 type: 'like'
             })
 
-            res.status(200).json({message: "Post liked succesfully"});
+            res.status(200).json(updatedPost.likes);
 
         }
 

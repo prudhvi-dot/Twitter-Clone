@@ -1,9 +1,31 @@
 import { Link } from "react-router-dom";
 import RightPanelSkeleton from "../skeletons/RigntPanelSkeleton";
-import { USERS_FOR_RIGHT_PANEL } from "../../utils/db/dummy";
+import { useQuery } from "@tanstack/react-query";
+import useFollow from "../../Hooks/useFollow";
 
 const RightPanel = () => {
-	const isLoading = false;
+	
+	const {data:suggestedUsers, isLoading} = useQuery({
+		queryKey: ['suggested'],
+		queryFn: async()=>{
+			try {
+				const res = await fetch('/api/users/suggested');
+				const data = await res.json();
+
+				if(!res.ok){
+					throw new Error(data.error);
+				}
+
+				return data
+			} catch (error) {
+				console.log(error.message);
+			}
+		}
+	})
+
+	const{follow, isLoading:isPending} = useFollow();
+
+	
 
 	return (
 		<div className='hidden lg:block my-4 mx-2'>
@@ -20,9 +42,9 @@ const RightPanel = () => {
 						</>
 					)}
 					{!isLoading &&
-						USERS_FOR_RIGHT_PANEL?.map((user) => (
+						suggestedUsers?.map((user) => (
 							<Link
-								to={`/profile/${user.username}`}
+								to={`/profile/${user.userName}`}
 								className='flex items-center justify-between gap-4'
 								key={user._id}
 							>
@@ -36,13 +58,16 @@ const RightPanel = () => {
 										<span className='font-semibold tracking-tight truncate w-28'>
 											{user.fullName}
 										</span>
-										<span className='text-sm text-slate-500'>@{user.username}</span>
+										<span className='text-sm text-slate-500'>@{user.userName}</span>
 									</div>
 								</div>
 								<div>
 									<button
 										className='btn bg-white text-black hover:bg-white hover:opacity-90 rounded-full btn-sm'
-										onClick={(e) => e.preventDefault()}
+										onClick={(e) => {
+											e.preventDefault();
+											follow(user._id)
+										}}
 									>
 										Follow
 									</button>

@@ -11,14 +11,15 @@ import LoadingSpinner from "./LoadingSpinner";
 const Post = ({ post, feedType }) => {
 	const [comment, setComment] = useState("");
 	const postOwner = post.user;
-	const isLiked = false;
+	// const isLiked = false;
 
 	const queryClient = useQueryClient();
+
 
 	
 	const formattedDate = "1h";
 	
-	const isCommenting = false;
+	// const isCommenting = false;
 	
 	const {data} = useQuery({
 		queryKey:['authUser']
@@ -42,15 +43,76 @@ const Post = ({ post, feedType }) => {
 	})
 	const isMyPost = postOwner._id===data._id;
 
+	const {mutate:likePost} = useMutation({
+		mutationFn: async()=>{
+			const res = await fetch(`/api/posts/like/${post._id}`,{
+				method:"POST"
+			})
+			const data = await res.json();
+
+			if(!res.ok){
+				throw new Error(data.error)
+			}
+
+			return data;
+		},
+		onSuccess:(updatedLikes)=>{
+			// queryClient.invalidateQueries(['posts'])
+
+			queryClient.setQueryData(['posts',feedType],(oldData)=>{
+				return oldData.map((p)=>{
+					if(p._id===post._id){
+						return {...p,likes:updatedLikes}
+					}else{
+						return p
+					}
+				})
+			})
+
+		}
+	})
+
+	const{mutate:commentFunction, isPending:isCommenting} = useMutation({
+		mutationFn: async(comment)=>{
+			const res = await fetch(`/api/posts/comment/${post._id}`,{
+				method:"POST",
+				headers:{
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify({text: comment})
+			})
+			const data = await res.json();
+
+			if(!res.ok){
+				throw new Error(data.error);
+			}
+
+			return data;
+		},
+		onSuccess: ()=>{
+			queryClient.invalidateQueries(['posts', feedType])
+		},
+		onError: (error)=>{
+			console.log(error.message)
+		}
+	})
+
+
+	const isLiked = post.likes.includes(data._id)
+
 	const handleDeletePost = (id) => {
 		deletePost(id)
 	};
 
 	const handlePostComment = (e) => {
 		e.preventDefault();
+		commentFunction(comment);
+		setComment("")
 	};
 
-	const handleLikePost = () => {};
+	const handleLikePost = () => {
+		likePost()
+	};
 
 	return (
 		<>
@@ -163,8 +225,8 @@ const Post = ({ post, feedType }) => {
 								{isLiked && <FaRegHeart className='w-4 h-4 cursor-pointer text-pink-500 ' />}
 
 								<span
-									className={`text-sm text-slate-500 group-hover:text-pink-500 ${
-										isLiked ? "text-pink-500" : ""
+									className={`text-sm  group-hover:text-pink-500 ${
+										isLiked ? "text-pink-500" : "text-slate-500"
 									}`}
 								>
 									{post.likes.length}
